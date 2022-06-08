@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { NextFunction, Request, Response } from 'express'
+import HttpException from '../exceptions/HttpException'
 
 import ShortLink from '../models/shortLink.model'
 
@@ -10,8 +11,7 @@ export async function createShortLink (req: Request, res: Response, next:NextFun
   if (req.body.slug) {
     const shortLink = await ShortLink.findOne({ slug: req.body.slug })
     if (shortLink) {
-      const err:any = Error('slug must be unique')
-      err.status = 400
+      const err = new HttpException(400, 'slug must be unique')
       next(err)
     }
   }
@@ -19,8 +19,7 @@ export async function createShortLink (req: Request, res: Response, next:NextFun
     const newShortLink = await ShortLink.create(req.body)
     res.status(201)
     res.json(newShortLink)
-  } catch (error:any) {
-    error.status = 500
+  } catch (error) {
     next(error)
   }
 }
@@ -30,8 +29,7 @@ export async function getShortLinks (req: Request, res:Response, next:NextFuncti
     const shortLinks = await ShortLink.find()
     res.status(200)
     res.json(shortLinks)
-  } catch (error:any) {
-    error.status = 500
+  } catch (error) {
     next(error)
   }
 }
