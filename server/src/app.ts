@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import shortLinkRouter from './routes/shortLink.routes'
+import errorMiddleware from './middleware/error.middleware'
 
 const url = 'mongodb://localhost:27017/smartShorter'
 const connect = mongoose.connect(url)
@@ -15,6 +16,8 @@ app.use(express.json({
 const port = process.env.PORT || 5000
 
 app.use('/shortlinks', shortLinkRouter)
+// handling errors
+app.use(errorMiddleware)
 
 connect
   .then((db) => {
