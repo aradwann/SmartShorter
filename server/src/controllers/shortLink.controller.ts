@@ -29,21 +29,15 @@ export async function updateShortLink (req: Request, res: Response, next:NextFun
 
   if (bodySlug && (bodySlug !== paramSlug)) {
     const err = new HttpException(400, 'slug cannot be updated')
-    next(err)
-  }
-
-  const shortLink = await ShortLink.findOne({ slug: paramSlug })
-  if (!shortLink) {
-    const err = new HttpException(404, 'short link not found')
-    next(err)
+    return next(err)
   }
 
   try {
-    const newShortLink = await ShortLink.updateOne(req.body)
+    await ShortLink.findOneAndUpdate({ slug: paramSlug }, req.body)
     res.status(200)
-    res.json(newShortLink)
+    return res.json(paramSlug)
   } catch (error) {
-    next(error)
+    return next(error)
   }
 }
 
@@ -51,8 +45,33 @@ export async function getShortLinks (req: Request, res:Response, next:NextFuncti
   try {
     const shortLinks = await ShortLink.find()
     res.status(200)
-    res.json(shortLinks)
+    return res.json(shortLinks)
   } catch (error) {
-    next(error)
+    return next(error)
+  }
+}
+
+export async function handleRedirection (req: Request, res:Response, next:NextFunction) {
+  const paramSlug = req.params.slug
+  const isAndroid = !!req.get('User-Agent')?.match(/Android/)
+  const isIos = !!req.get('User-Agent')?.match(/iPad/)
+
+  const shortLink = await ShortLink.findOne({ slug: paramSlug })
+  console.log(paramSlug)
+  console.log(isAndroid)
+  console.log(isIos)
+  console.log(JSON.stringify(shortLink))
+
+  if (shortLink) {
+    if (isAndroid && shortLink.android.primary) {
+      return res.redirect(shortLink.android.primary)
+    } else if (isIos && shortLink.ios.primary) {
+      return res.redirect(shortLink.ios.primary)
+    } else {
+      return res.redirect(shortLink.web)
+    }
+  } else {
+    const err = new HttpException(404, 'short link not found')
+    return next(err)
   }
 }

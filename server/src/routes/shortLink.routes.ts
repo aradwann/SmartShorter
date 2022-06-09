@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createShortLink, getShortLinks, updateShortLink } from '../controllers/shortLink.controller'
+import { createShortLink, getShortLinks, updateShortLink, handleRedirection } from '../controllers/shortLink.controller'
 import validateResource from '../middleware/resourceValidation.middleware'
 import shortLinkSchema from '../schemas/shortLink.schema'
 
@@ -10,7 +10,9 @@ router
   .post(validateResource(shortLinkSchema), createShortLink)
   .get(getShortLinks)
 
-router.route('/:slug')
+router
+  .route('/:slug')
   .put(updateShortLink)
+  .get(handleRedirection)
 
 export default router
